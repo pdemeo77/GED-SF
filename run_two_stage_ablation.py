@@ -214,50 +214,47 @@ def process_configuration_all_stages(dataset_name, config_name, feature_list, X_
     # Dizionario per i risultati
     results = {'stage1': {}, 'stage2a': {}, 'stage2b': {}}
     
+    # Cache delle predizioni per evitare re-training nell'Ensemble
+    predictions_cache = {'stage1': {}, 'stage2a': {}, 'stage2b': {}}
+    
     # Addestra per ogni modello
     for model_name in MODELS.keys():
         # Stage 1: GW_Score solo
-        _, mae1, mse1, acc1, sp1, k1 = train_and_evaluate_model(
+        pred1, mae1, mse1, acc1, sp1, k1 = train_and_evaluate_model(
             model_name, X_train_gw, y_train, X_test_gw, y_test
         )
+        predictions_cache['stage1'][model_name] = pred1
         results['stage1'][model_name] = {
             'MAE': mae1, 'MSE': mse1, 'Accuracy': acc1,
             'Spearman_r': sp1, 'Kendall_tau': k1
         }
         
         # Stage 2A: Enriched non-normalizzato
-        _, mae2a, mse2a, acc2a, sp2a, k2a = train_and_evaluate_model(
+        pred2a, mae2a, mse2a, acc2a, sp2a, k2a = train_and_evaluate_model(
             model_name, X_train_enriched, y_train, X_test_enriched, y_test
         )
+        predictions_cache['stage2a'][model_name] = pred2a
         results['stage2a'][model_name] = {
             'MAE': mae2a, 'MSE': mse2a, 'Accuracy': acc2a,
             'Spearman_r': sp2a, 'Kendall_tau': k2a
         }
         
         # Stage 2B: Enriched normalizzato
-        _, mae2b, mse2b, acc2b, sp2b, k2b = train_and_evaluate_model(
+        pred2b, mae2b, mse2b, acc2b, sp2b, k2b = train_and_evaluate_model(
             model_name, X_train_enriched_normalized, y_train, 
             X_test_enriched_normalized, y_test
         )
+        predictions_cache['stage2b'][model_name] = pred2b
         results['stage2b'][model_name] = {
             'MAE': mae2b, 'MSE': mse2b, 'Accuracy': acc2b,
             'Spearman_r': sp2b, 'Kendall_tau': k2b
         }
     
-    # Ensemble: media pesata
+    # Ensemble: media pesata (usa predizioni già calcolate)
     for stage_key in ['stage1', 'stage2a', 'stage2b']:
-        if stage_key == 'stage1':
-            rf_pred = train_and_evaluate_model('RandomForest', X_train_gw, y_train, X_test_gw, y_test)[0]
-            gb_pred = train_and_evaluate_model('GradientBoosting', X_train_gw, y_train, X_test_gw, y_test)[0]
-            huber_pred = train_and_evaluate_model('Huber', X_train_gw, y_train, X_test_gw, y_test)[0]
-        elif stage_key == 'stage2a':
-            rf_pred = train_and_evaluate_model('RandomForest', X_train_enriched, y_train, X_test_enriched, y_test)[0]
-            gb_pred = train_and_evaluate_model('GradientBoosting', X_train_enriched, y_train, X_test_enriched, y_test)[0]
-            huber_pred = train_and_evaluate_model('Huber', X_train_enriched, y_train, X_test_enriched, y_test)[0]
-        else:  # stage2b
-            rf_pred = train_and_evaluate_model('RandomForest', X_train_enriched_normalized, y_train, X_test_enriched_normalized, y_test)[0]
-            gb_pred = train_and_evaluate_model('GradientBoosting', X_train_enriched_normalized, y_train, X_test_enriched_normalized, y_test)[0]
-            huber_pred = train_and_evaluate_model('Huber', X_train_enriched_normalized, y_train, X_test_enriched_normalized, y_test)[0]
+        rf_pred = predictions_cache[stage_key]['RandomForest']
+        gb_pred = predictions_cache[stage_key]['GradientBoosting']
+        huber_pred = predictions_cache[stage_key]['Huber']
         
         ensemble_pred = 0.5 * rf_pred + 0.3 * gb_pred + 0.2 * huber_pred
         

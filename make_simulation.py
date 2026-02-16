@@ -5,7 +5,7 @@ Simulazione e Valutazione della Graph Edit Distance
 PIPELINE PRINCIPALE:
 ====================
 
-Questo modulo orchestr a gli esperimenti di approssimazione della GED:
+Questo modulo orchestra gli esperimenti di approssimazione della GED:
     1. Processa coppie di grafi con/senza feature strutturali
     2. Esegue simulazioni su più dataset
     3. Applica regressione SVR per predire GED dai punteggi GW
@@ -38,7 +38,7 @@ Permettendo il confronto diretto della qualità dell'approssimazione.
 FUNZIONI CHIAVE:
 ================
 - process_graph_pair: Processa una singola coppia di grafi
-- make_simulation: Orchestr a gli esperimenti su tutti i dataset
+- make_simulation: Orchestra gli esperimenti su tutti i dataset
 - apply_svr_and_compute_metrics: Addestra SVR e calcola metriche
 """
 
@@ -50,7 +50,16 @@ from sklearn.svm import SVR
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from ged_computation import *
+from ged_computation import (
+    get_graph_by_id,
+    compare_and_swap_graphs,
+    compute_label_distance,
+    compute_cross_matrix_with_structural_features,
+    calculate_cross_matrix,
+    compute_ged_GW,
+    extract_ot_features,
+    label_dict_construction,
+)
 
 
 def process_graph_pair(G_1, G_2, labels_1, labels_2, true_ged, dataset, list_of_indices=None, mu=0.5):

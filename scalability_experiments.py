@@ -6,6 +6,11 @@ import random
 import os
 from scipy.optimize import linear_sum_assignment
 
+from ablation_linear_surrogate_simplified import (
+    get_graph_features,
+    get_permutation_matrix,
+)
+
 # ==========================================
 # CONFIGURAZIONE STILE PLOT
 # ==========================================
@@ -14,31 +19,8 @@ plt.style.use('seaborn-v0_8-whitegrid')
 # ==========================================
 # 1. FUNZIONI DI UTILITÀ
 # ==========================================
-
-def get_graph_features(G):
-    """Estrae feature: Degree (norm), Clustering, PageRank."""
-    n = G.number_of_nodes()
-    
-    # Degree Normalizzato
-    deg = np.array([d for n, d in G.degree()])
-    if n > 1:
-        deg = deg / (n - 1)
-    else:
-        deg = np.zeros(n)
-        
-    # Clustering Coefficient
-    cc = np.array(list(nx.clustering(G).values()))
-    
-    # PageRank
-    pr = np.array(list(nx.pagerank(G).values()))
-    
-    return np.column_stack((deg, cc, pr))
-
-def get_permutation_matrix(indices, n):
-    """Converte l'output di linear_sum_assignment in matrice Pi."""
-    Pi = np.zeros((n, n))
-    Pi[indices] = 1
-    return Pi
+# get_graph_features and get_permutation_matrix are imported from
+# ablation_linear_surrogate_simplified
 
 def generate_synthetic_pair(n_nodes, m_edges, n_edits):
     """Genera coppia di grafi con differenze."""

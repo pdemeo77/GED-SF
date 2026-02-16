@@ -234,10 +234,15 @@ def process_configuration(dataset_name, config_name, feature_list):
     # Dizionario per le metriche
     metrics_dict = {}
     
+    # Dizionario per cache delle predizioni (per Ensemble)
+    predictions_cache = {}
+    
     # Addestra ogni modello
     for model_name in MODELS.keys():
         y_pred, mae, mse, accuracy, spearman_r, kendall_tau_val = \
             train_and_evaluate_model(model_name, X_train, y_train, X_test, y_test)
+        
+        predictions_cache[model_name] = y_pred
         
         metrics_dict[model_name] = {
             'MAE': mae,
@@ -247,10 +252,10 @@ def process_configuration(dataset_name, config_name, feature_list):
             'Kendall_tau': kendall_tau_val
         }
     
-    # Ensemble: media dei 3 modelli migliori
-    rf_pred = train_and_evaluate_model('RandomForest', X_train, y_train, X_test, y_test)[0]
-    gb_pred = train_and_evaluate_model('GradientBoosting', X_train, y_train, X_test, y_test)[0]
-    huber_pred = train_and_evaluate_model('Huber', X_train, y_train, X_test, y_test)[0]
+    # Ensemble: media dei 3 modelli migliori (usa predizioni già calcolate)
+    rf_pred = predictions_cache['RandomForest']
+    gb_pred = predictions_cache['GradientBoosting']
+    huber_pred = predictions_cache['Huber']
     ensemble_pred = (0.5 * rf_pred + 0.3 * gb_pred + 0.2 * huber_pred)
     
     ensemble_mae = mean_absolute_error(y_test, ensemble_pred)

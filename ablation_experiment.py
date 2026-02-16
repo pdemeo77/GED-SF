@@ -24,10 +24,8 @@ import seaborn as sns
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
-import sys
 from datetime import datetime
 
-sys.path.insert(0, r'c:\Users\Pasquale De Meo\Documents\GED-SF')
 from ablation_linear_surrogate_simplified import (
     get_graph_features,
     solve_ged_fw

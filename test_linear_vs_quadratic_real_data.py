@@ -24,17 +24,15 @@ import networkx as nx
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
-import sys
 import time
 import ast
 from datetime import datetime
 
-sys.path.insert(0, r'c:\Users\Pasquale De Meo\Documents\GED-SF')
 from ablation_linear_surrogate_simplified import (
     get_graph_features,
     solve_ged_fw
 )
-from ged_computation import extract_ot_features
+from ged_computation import extract_ot_features, compare_and_swap_graphs
 
 
 def load_graphs_from_csv(dataset_name):
@@ -109,16 +107,22 @@ def extract_features(G1, G2, mu=0.5, max_iter=30):
         # Skip very large graphs
         if len(G1) > 100 or len(G2) > 100:
             return None, None
+        
+        # Pad graphs to same size (critical for graphs with different node counts)
+        G1, G2 = compare_and_swap_graphs(G1, G2)
             
         F1 = get_graph_features(G1)
         F2 = get_graph_features(G2)
         A1 = nx.to_numpy_array(G1)
         A2 = nx.to_numpy_array(G2)
         
+        # Compute cross matrix as element-wise product of adjacency matrices
+        cross_matrix = A1 * A2
+        
         # LINEAR
         try:
             Pi_L, obj_L = solve_ged_fw(A1, A2, F1, F2, mu, max_iter, formulation='linear')
-            ot_L = extract_ot_features(Pi_L, A1 @ A2, A1, A2)
+            ot_L = extract_ot_features(Pi_L, cross_matrix, A1, A2)
             ot_L['gw_score'] = obj_L
         except Exception as e:
             print(f"      ERROR Linear: {str(e)[:50]}")
@@ -127,7 +131,7 @@ def extract_features(G1, G2, mu=0.5, max_iter=30):
         # QUADRATIC
         try:
             Pi_Q, obj_Q = solve_ged_fw(A1, A2, F1, F2, mu, max_iter, formulation='quadratic')
-            ot_Q = extract_ot_features(Pi_Q, A1 @ A2, A1, A2)
+            ot_Q = extract_ot_features(Pi_Q, cross_matrix, A1, A2)
             ot_Q['gw_score'] = obj_Q
         except Exception as e:
             print(f"      ERROR Quadratic: {str(e)[:50]}")

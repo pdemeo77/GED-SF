@@ -649,7 +649,7 @@ def solve_ged_fw(A1, A2, F1, F2, mu, max_iter=150, formulation='linear'):
         #
         # Precomputa i termini fissi:
         
-        M_quad = F2 @ F2.T  # shape: (3, 3) - covariance-like
+        M_quad = F2 @ F2.T  # shape: (n, n) - covariance-like
         C_quad_const = F1 @ F2.T  # shape: (n, n) - cross-correlazione
     
     # ========================================
@@ -688,14 +688,9 @@ def solve_ged_fw(A1, A2, F1, F2, mu, max_iter=150, formulation='linear'):
         else:  # quadratic
             # Quadratica: dipende da Pi attuale
             grad_struct = 2 * mu * ((Pi @ M_quad) - C_quad_const)
-            # Calcolo: (n,n) @ (3,3) = sbagliato!, dovrebbe essere (n,n) @ (n,n)
-            # Nota: M_quad dovrebbe essere (n,n) non (3,3)
-            # Questo è un BUG nel codice originale!
-            # La correzione sarebbe: M_quad = F2 @ F2.T dovrebbe usare la forma espansa
-            # Ma proviamo a capire cosa volesse il codice:
-            # Probabilmente voleva: F2 @ F2.T^T che è (n,3) @ (3,n) = (n,n)
-            # NO - meglio controllare: F2 è (n,3), F2.T è (3,n), risultato (n,3) @ (3,n) = (n,n) ✓
-            # OK, è corretto così.
+            # Calcolo: (n,n) @ (n,n) = (n,n) ✓
+            # M_quad = F2 @ F2.T è (n,3) @ (3,n) = (n,n)
+            # Pi @ M_quad = (n,n) @ (n,n) = (n,n)
         
         # --------
         # STEP 3: GRADIENTE TOTALE

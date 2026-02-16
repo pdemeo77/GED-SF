@@ -175,8 +175,8 @@ def main():
         print("\n🎉 Environment is ready! You can now run experiments.")
         print("\nNext steps:")
         print("  • Run experiments: python run_ot_features_experiments.py")
-        print("  • Generate figures: python generate_publication_figures.py")
-        print("  • Read docs: docs/COMPREHENSIVE_RESULTS_WRITEUP.md")
+        print("  • Run ablation: python run_structural_features_ablation.py")
+        print("  • Read docs: REPRODUCTION_GUIDE.md")
         return 0
     else:
         print(f"✗ SOME CHECKS FAILED ({passed}/{total} passed)")
