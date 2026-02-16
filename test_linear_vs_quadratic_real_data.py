@@ -108,6 +108,11 @@ def extract_features(G1, G2, mu=0.5, max_iter=30):
         if len(G1) > 100 or len(G2) > 100:
             return None, None
         
+        # IMPORTANT: copy graphs to avoid mutating the originals in the shared dict
+        # compare_and_swap_graphs adds dummy nodes in-place
+        G1 = G1.copy()
+        G2 = G2.copy()
+        
         # Pad graphs to same size (critical for graphs with different node counts)
         G1, G2 = compare_and_swap_graphs(G1, G2)
             
@@ -280,8 +285,9 @@ def main():
     
     all_results = []
     
+    # Use sample_size=500 per dataset for manageable runtime
     for dataset in ['AIDS', 'IMDB', 'Linux']:
-        result = test_dataset(dataset)
+        result = test_dataset(dataset, sample_size=500)
         if result:
             all_results.append(result)
     
